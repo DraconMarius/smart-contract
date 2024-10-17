@@ -1,5 +1,5 @@
 {
-  "name": "smart-contract",
+  "name": "smart-contract-latency",
   "version": "0.0.1",
   "description": "contract calling latency",
   "main": "server.js",

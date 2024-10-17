@@ -7,9 +7,11 @@ const session = require("express-session");
 const { ethers } = require('ethers');
 const { calcAge, getTime } = require('./util/age');
 const SequalizeStore = require("connect-session-sequelize")(session.Store);
+const WebSocket = require('ws');
 const app = express();
+const routes = require("./controllers/index.js");
 const sequelize = require('./db/config/connection');
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 // const { Alchemy, Network, Wallet } = require('alchemy-sdk');
 const Net = require("./db/models/net");
 const Entry = require("./db/models/entry");
@@ -23,10 +25,10 @@ const configs = {
         rpc: `https://eth-sepolia.g.alchemy.com/v2/${Key}`,
         contract: `0xB3A2bF2c143970c10618ED8E4007b68D55e63eb0`
     },
-    // Polygon: {
-    //     rpc: `https://polygon-amoy.g.alchemy.com/v2/${Key}`,
-    //     contract: `0xB13a80d106f97669D53E64004DC4507c8D2C02BD`
-    // },
+    Polygon: {
+        rpc: `https://polygon-amoy.g.alchemy.com/v2/${Key}`,
+        contract: `0xB13a80d106f97669D53E64004DC4507c8D2C02BD`
+    },
     Arbitrum: {
         rpc: `https://arb-sepolia.g.alchemy.com/v2/${Key}`,
         contract: `0xD830Bf02536F8F7c22E359A6d775219F52374FE9`
@@ -47,7 +49,9 @@ const contractABI = [
     "event ContractCalled(address indexed caller, uint256 timestamp)"
 ];
 
-
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, '../client/build')));
+}
 const sess = {
     secret: process.env.SECRET,
     cookies: {},
@@ -63,11 +67,22 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// app.use(routes)
+app.use(routes)
 
-app.get('/', (req, res) => {
-    res.send('Listening for events...');
-});
+app.get('/*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+})
+
+const notifyClients = (data) => {
+    console.log('Notifying clients:', data);
+    if (wss) {
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify(data));
+            }
+        });
+    }
+};
 
 const getID = async (net) => {
     try {
@@ -102,6 +117,8 @@ const saveToDb = async (net, txHash, startT, endT, latency, caller) => {
     return newEntry;
 }
 
+let wss
+
 sequelize.sync({ force: false })
     .then(() => Net.sync())
     .then(() => Entry.sync())
@@ -109,7 +126,15 @@ sequelize.sync({ force: false })
         const server = app.listen(PORT, () => {
             console.log(`Server is listening on port ${PORT}`);
         });
+        wss = new WebSocket.Server({ server });
 
+        wss.on('connection', (ws) => {
+            console.log('Frontend connected');
+
+            ws.on('close', () => {
+                console.log('Frontend disconnected');
+            });
+        });
     });
 
 Object.entries(configs).map(async ([net, config]) => {
@@ -133,17 +158,30 @@ Object.entries(configs).map(async ([net, config]) => {
         console.log(`Event received! Latency: ${latency}`);
         console.log(`Caller Address: ${caller}`);
         console.log(`Timestamp: ${new Date(timestamp.toNumber() * 1000).toLocaleString()}`);
+        notifyClients({ message: `Contract function called, transaction confirmed for ${net}` })
     });
     cron.schedule('0,30 * * * *', async () => {
         console.log('Calling contract function every 30 minutes');
 
         try {
             // Call the 'checkLatency' function in the contract
-            const tx = await contract.checkLatency();
+            if (net === "Polygon") {
 
-            // Wait for the transaction to be mined
-            const receipt = await tx.wait();
-            console.log(`Transaction mined ${net}:`, receipt.transactionHash);
+                const tx = await contract.checkLatency({
+                    maxPriorityFeePerGas: ethers.utils.parseUnits('26', 'gwei'),
+                    maxFeePerGas: ethers.utils.parseUnits('26', 'gwei'),
+                });
+
+                // Wait for the transaction to be mined
+                const receipt = await tx.wait();
+                console.log(`Transaction mined ${net}:`, receipt.transactionHash);
+            } else {
+                const tx = await contract.checkLatency();
+
+                // Wait for the transaction to be mined
+                const receipt = await tx.wait();
+                console.log(`Transaction mined ${net}:`, receipt.transactionHash);
+            }
 
             // notifyClients({ message: 'Contract function called, transaction confirmed.' });
 
