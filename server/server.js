@@ -91,10 +91,12 @@ const getID = async (net) => {
                 name: net
             }
         });
-        // idRes = results.get({ plain: true }); //<--- get plain true to return json data value
-        console.log(results.dataValues.id)
+        idRes = results.get({ plain: true }); //<--- get plain true to return json data value
+        console.log(idRes)
+        console.log(idRes.id)
+        const resultID = idRes.id
         return (
-            results.dataValues.id);
+            resultID);
     } catch (err) {
         console.error(err);
         throw err;
@@ -160,7 +162,7 @@ Object.entries(configs).map(async ([net, config]) => {
         console.log(`Timestamp: ${new Date(timestamp.toNumber() * 1000).toLocaleString()}`);
         notifyClients({ message: `Contract function called, transaction confirmed for ${net}` })
     });
-    cron.schedule('0,30 * * * *', async () => {
+    cron.schedule('* * * * *', async () => {
         console.log('Calling contract function every 30 minutes');
 
         try {
