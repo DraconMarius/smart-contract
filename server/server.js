@@ -172,13 +172,16 @@ Object.entries(configs).map(async ([net, config]) => {
                 const tx = await contract.checkLatency({
                     maxPriorityFeePerGas: ethers.utils.parseUnits('26', 'gwei'),
                     maxFeePerGas: ethers.utils.parseUnits('26', 'gwei'),
+                    gasLimit: "300000"
                 });
 
                 // Wait for the transaction to be mined
                 const receipt = await tx.wait();
                 console.log(`Transaction mined ${net}:`, receipt.transactionHash);
             } else {
-                const tx = await contract.checkLatency();
+                const tx = await contract.checkLatency({
+                    gasLimit: "300000"
+                });
 
                 // Wait for the transaction to be mined
                 const receipt = await tx.wait();
