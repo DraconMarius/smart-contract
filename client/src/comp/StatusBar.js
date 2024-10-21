@@ -48,6 +48,7 @@ function StatusBar({ res, selectedNetwork, min, max, avg }) {
     };
 
     const getColor = (latency) => {
+        if (latency === min) return 'has-background-primary'
         if (latency < avg) return 'has-background-success';
         if (latency >= avg && latency < max) return 'has-background-warning';
         return 'has-background-danger';
