@@ -125,15 +125,29 @@ function Disp() {
                     <div className="hero-body is-justify-content-center">
                         <div className="container has-text-centered">
 
-                            {Object.keys(db).map((networkKey) => (
-                                <div className="container is-justify-content-center" key={networkKey}>
-                                    <StatusBar
-                                        res={db}
-                                        selectedNetwork={networkKey}
-                                        key={networkKey}
-                                    />
-                                </div>
-                            ))}
+                            {Object.keys(db).map((networkKey) => {
+                                // Calculate min, max, and average latency
+                                const entries = db[networkKey];
+                                const latencies = entries.map((entry) => parseInt(entry?.latency) || 0);
+                                const minLatency = Math.round(Math.min(...latencies));
+                                const maxLatency = Math.round(Math.max(...latencies));
+                                const avgLatency = latencies.reduce((a, b) => a + b, 0) / latencies.length;
+
+                                // console.log(`${avgLatency} ${minLatency} ${maxLatency} latencies for ${networkKey}`)
+
+                                return (
+                                    <div className="container is-justify-content-center" key={networkKey}>
+                                        <StatusBar
+                                            res={db}
+                                            selectedNetwork={networkKey}
+                                            key={networkKey}
+                                            min={minLatency}
+                                            max={maxLatency}
+                                            avg={avgLatency}
+                                        />
+                                    </div>
+                                )
+                            })}
 
                         </div>
                     </div>

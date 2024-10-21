@@ -7,7 +7,7 @@ import arbitrumIcon from '../assets/arbitrum-logo.png'
 import optimismIcon from '../assets/optimism-logo.png'
 import polygonIcon from '../assets/polygon-logo.png'
 
-function StatusBar({ res, selectedNetwork }) {
+function StatusBar({ res, selectedNetwork, min, max, avg }) {
     const [focusedIndex, setFocusedIndex] = useState(null);
     const [clickedIndex, setClickedIndex] = useState(null);
     const [icon, setIcon] = useState(null);
@@ -34,6 +34,26 @@ function StatusBar({ res, selectedNetwork }) {
 
     const entries = res[selectedNetwork];
 
+    //dynamig height                                 
+    const getHeight = (latency) => {
+        const minHeight = 45;
+        const maxHeight = 300;
+
+        if (min === max) return minHeight;
+
+        const normalizedHeight =
+            ((latency - min) / (max - min)) * (maxHeight - minHeight) + minHeight;
+        // console.log(`${normalizedHeight} normalized height`)
+        return normalizedHeight;
+    };
+
+    const getColor = (latency) => {
+        if (latency < avg) return 'has-background-success';
+        if (latency >= avg && latency < max) return 'has-background-warning';
+        return 'has-background-danger';
+    };
+
+
     const formatDate = (dateString) => {
         const [year, month, day] = dateString.split('-');
         return `${month.padStart(2, '0')}/${day.padStart(2, '0')}/${year}`;
@@ -56,9 +76,12 @@ function StatusBar({ res, selectedNetwork }) {
                 {entries.map((entry, index) => {
                     const currentEntryDate = new Date(entry.timestamp).toISOString().slice(0, 10);
                     const previousEntryDate = index > 0 ? new Date(entries[index - 1].timestamp).toISOString().slice(0, 10) : null;
-
+                    const entryLatency = parseInt(entry.latency)
                     const parsedDate = `${new Date(entry.timestamp).toUTCString()}`;
+                    const barHeight = getHeight(entryLatency);
+                    const barColor = getColor(entryLatency);
 
+                    // console.log(`${barHeight} ${barColor} for ${entry.latency}`)
                     return (
                         <motion.div className="is-flex is-justify-content-flex-start is-align-items-flex-end" key={index}>
                             {currentEntryDate !== previousEntryDate && (
@@ -69,15 +92,15 @@ function StatusBar({ res, selectedNetwork }) {
 
                             <motion.div
                                 layout
-                                className={`status-item is-flex ${focusedIndex === index ? 'is-focused' : 'is-faded'} ${!entry.tx_hash ? 'has-background-danger' : 'has-backround-success'}`}
+                                className={`status-item is-flex ${focusedIndex === index ? 'is-focused' : 'is-faded'} ${barColor}`}
                                 onHoverStart={() => clickedIndex === null && setFocusedIndex(index)}
                                 onHoverEnd={() => clickedIndex === null && setFocusedIndex(null)}
                                 onClick={() => setClickedIndex(clickedIndex === index ? null : index)}
-                                initial={{ scale: 1 }}
                                 transition={{ type: 'spring', stiffness: 100, damping: 60 }}
                                 style={{
                                     position: 'relative',
                                     transformOrigin: 'center',
+                                    height: `${barHeight}px`
                                 }}
                             >
                                 <div className="time-marker">
@@ -89,8 +112,8 @@ function StatusBar({ res, selectedNetwork }) {
                                 <motion.div
                                     layout
                                     className="status-info "
-                                    initial={{ opacity: 0, y: -250 }}
-                                    animate={{ opacity: 1, y: -50 }}
+                                    initial={{ opacity: 0, x: 300, y: -250 }}
+                                    animate={{ opacity: 1, x: 50, y: -50 }}
                                     exit={{ opacity: 0, y: -200 }}
                                     transition={{ duration: 0.5 }}
                                     style={{
@@ -142,7 +165,7 @@ function StatusBar({ res, selectedNetwork }) {
             <div className="container">
                 <p className="title is-6 has-text-left is-align-items-flex-end">{selectedNetwork}</p>
             </div>
-        </AnimatePresence>
+        </AnimatePresence >
     );
 }
 
