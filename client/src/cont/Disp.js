@@ -42,7 +42,7 @@ function Disp() {
 
             // If the message indicates an update, refresh the data
             if (data.message === 'update') {
-                console.log('Data update received from WebSocket');
+                console.log(`Data update received from WebSocket: ${data.log}`);
                 fetchData();  // Refresh the data on the frontend
             }
         };

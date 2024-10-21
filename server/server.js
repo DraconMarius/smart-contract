@@ -160,7 +160,7 @@ Object.entries(configs).map(async ([net, config]) => {
         console.log(`Event received! Latency: ${latency}`);
         console.log(`Caller Address: ${caller}`);
         console.log(`Timestamp: ${new Date(timestamp.toNumber() * 1000).toLocaleString()}`);
-        notifyClients({ message: `Contract function called, transaction confirmed for ${net}` })
+        notifyClients({ message: 'update', log: `Contract function called, transaction confirmed for ${net}` })
     });
     cron.schedule('0,30 * * * *', async () => {
         console.log('Calling contract function every 30 minutes');
