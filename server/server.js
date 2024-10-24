@@ -153,7 +153,7 @@ Object.entries(configs).map(async ([net, config]) => {
         const latency = calcAge(timestamp.toNumber() * 1000, callT)
         const txHash = event.transactionHash;
         // console.log(txHash, event.transactionHash)
-        saveToDb(net, txHash, new Date(timestamp.toNumber() * 1000), callT, latency, caller).then(
+        saveToDb(net, txHash, callT, new Date(timestamp.toNumber() * 1000), latency, caller).then(
             notifyClients({ message: 'update', log: `Contract function called, transaction confirmed for ${net}` })
         );
 
