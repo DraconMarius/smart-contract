@@ -149,7 +149,7 @@ Object.entries(configs).map(async ([net, config]) => {
 
     // Listen for the ContractCalled event
     contract.on("ContractCalled", (caller, timestamp, event) => {
-        const callT = getTime();  // Get currentd time in milliseconds
+        const callT = getTime();  // Get call time in milliseconds (in 30 min cadence)
         const latency = calcAge(timestamp.toNumber() * 1000, callT)
         const txHash = event.transactionHash;
         // console.log(txHash, event.transactionHash)
@@ -158,10 +158,7 @@ Object.entries(configs).map(async ([net, config]) => {
         );
 
         console.log(`${net} Transaction Hash from event: ${txHash}`);
-        console.log(`Event received! Latency: ${latency}`);
-        console.log(`Caller Address: ${caller}`);
-        console.log(`Timestamp: ${new Date(timestamp.toNumber() * 1000).toLocaleString()}`); w
-    });rfdt
+    });
     cron.schedule('0,30 * * * *', async () => {
         console.log('Calling contract function every 30 minutes');
 
