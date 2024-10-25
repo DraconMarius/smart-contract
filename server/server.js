@@ -150,7 +150,7 @@ Object.entries(configs).map(async ([net, config]) => {
     // Listen for the ContractCalled event
     contract.on("ContractCalled", (caller, timestamp, event) => {
         const callT = getTime();  // Get call time in milliseconds (in 30 min cadence)
-        const latency = calcAge(timestamp.toNumber() * 1000, callT)
+        const latency = calcAge(callT, timestamp.toNumber() * 1000)
         const txHash = event.transactionHash;
         // console.log(txHash, event.transactionHash)
         saveToDb(net, txHash, callT, new Date(timestamp.toNumber() * 1000), latency, caller).then(
