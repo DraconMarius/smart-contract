@@ -147,9 +147,11 @@ Object.entries(configs).map(async ([net, config]) => {
     // Create contract instance
     const contract = new ethers.Contract(config.contract, contractABI, wallet);
 
+
+    let callT
+
     // Listen for the ContractCalled event
     contract.on("ContractCalled", (caller, timestamp, event) => {
-        const callT = getTime();  // Get call time in milliseconds (in 30 min cadence)
         const latency = calcAge(callT, timestamp.toNumber() * 1000)
         const txHash = event.transactionHash;
         // console.log(txHash, event.transactionHash)
@@ -159,9 +161,10 @@ Object.entries(configs).map(async ([net, config]) => {
 
         console.log(`${net} Transaction Hash from event: ${txHash}`);
     });
+    
     cron.schedule('0,30 * * * *', async () => {
         console.log('Calling contract function every 30 minutes');
-
+        callT = new Date();
         try {
             // Call the 'checkLatency' function in the contract
 

@@ -32,7 +32,7 @@ const getID = async (net) => {
             }
         });
         // idRes = results.get({ plain: true }); //<--- get plain true to return json data value
-        console.log(results.dataValues.id)
+        // console.log(results.dataValues.id)
         return (
             results.dataValues.id);
     } catch (err) {
@@ -61,7 +61,7 @@ router.get("/getDb", async (req, res) => {
 
         // Combine the results into a single object
         const combinedResults = results.reduce((acc, result) => ({ ...acc, ...result }), {});
-        console.log(combinedResults);
+        // console.log(combinedResults);
 
         res.json(combinedResults);
     } catch (err) {
