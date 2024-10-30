@@ -151,20 +151,21 @@ Object.entries(configs).map(async ([net, config]) => {
     let callT
 
     // Listen for the ContractCalled event
-    contract.on("ContractCalled", (caller, timestamp, event) => {
+    contract.on("ContractCalled", async (caller, timestamp, event) => {
         const latency = calcAge(callT, timestamp.toNumber() * 1000)
         const txHash = event.transactionHash;
         // console.log(txHash, event.transactionHash)
-        saveToDb(net, txHash, callT, new Date(timestamp.toNumber() * 1000), latency, caller).then(
-            notifyClients({ message: 'update', log: `Contract function called, transaction confirmed for ${net}` })
-        );
+        await saveToDb(net, txHash, callT, new Date(timestamp.toNumber() * 1000), latency, caller)
+
+        notifyClients({ message: 'update', log: `Contract function called, transaction confirmed for ${net}` })
+
 
         console.log(`${net} Transaction Hash from event: ${txHash}`);
     });
-    
+
     cron.schedule('0,30 * * * *', async () => {
         console.log('Calling contract function every 30 minutes');
-        callT = new Date();
+        callT = Date.now();
         try {
             // Call the 'checkLatency' function in the contract
 
