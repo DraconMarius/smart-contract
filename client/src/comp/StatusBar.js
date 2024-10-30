@@ -143,7 +143,7 @@ function StatusBar({ res, selectedNetwork, min, max, avg }) {
                                                 </td>
                                             </tr> */}
                                             <tr>
-                                                <td> <a href={`${scanUrl[selectedNetwork]}tx/${entry.tx?.tx_hash}`} className="is-pulled-right pl-3 pr-2" target="_blank" rel="noreferrer">
+                                                <td> <a href={`${scanUrl[selectedNetwork]}tx/${entry?.tx_hash}`} className="is-pulled-right pl-3 pr-2" target="_blank" rel="noreferrer">
                                                     <span className="icon is-small is-align-self-center"  ><img src={icon} /></span>
                                                 </a><strong>Tx Hash:</strong></td>
                                                 <td>  <span className="is-align-item-center">
