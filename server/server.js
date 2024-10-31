@@ -155,11 +155,14 @@ Object.entries(configs).map(async ([net, config]) => {
         const latency = calcAge(callT, timestamp.toNumber() * 1000)
         const txHash = event.transactionHash;
         // console.log(txHash, event.transactionHash)
-        await saveToDb(net, txHash, callT, new Date(timestamp.toNumber() * 1000), latency, caller)
+        try {
 
-        notifyClients({ message: 'update', log: `Contract function called, transaction confirmed for ${net}` })
-
-
+            await saveToDb(net, txHash, callT, new Date(timestamp.toNumber() * 1000), latency, caller)
+            notifyClients({ message: 'update', log: `Contract function called, transaction confirmed for ${net}` })
+            
+        }catch (err) {
+            notifyClients({ message: 'error', log: `Contract function called, not saved for ${net}` })
+        }
         console.log(`${net} Transaction Hash from event: ${txHash}`);
     });
 
