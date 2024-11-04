@@ -28,29 +28,32 @@ function Disp() {
         }
     };
 
-    const connectWebSocket = () => {
-
+    const connectWebSocket = (retryDelay = 1000) => {
         wsRef.current = new WebSocket(wsUri);
 
         wsRef.current.onopen = () => {
             console.log('Connected to WebSocket server');
+            retryDelay = 1000; // Reset delay if fine
         };
 
         wsRef.current.onmessage = (message) => {
             const data = JSON.parse(message.data);
             console.log('WebSocket message received:', data);
 
-            // If the message indicates an update, refresh the data
+            // update, refresh the data
             if (data.message === 'update') {
                 console.log(`Data update received from WebSocket: ${data.log}`);
-                fetchData();  // Refresh the data on the frontend
+                fetchData();
+            }
+
+            if (data.error) {
+                console.log(`Error: ${data.error}`);
             }
         };
 
-
         wsRef.current.onclose = () => {
             console.log('WebSocket connection closed');
-            setTimeout(connectWebSocket, 1000); // Reconnect after 1 second
+            setTimeout(() => connectWebSocket(retryDelay * 2), retryDelay);
         };
 
         wsRef.current.onerror = (error) => {

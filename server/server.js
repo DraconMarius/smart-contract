@@ -159,9 +159,9 @@ Object.entries(configs).map(async ([net, config]) => {
 
             await saveToDb(net, txHash, callT, new Date(timestamp.toNumber() * 1000), latency, caller)
             notifyClients({ message: 'update', log: `Contract function called, transaction confirmed for ${net}` })
-            
-        }catch (err) {
-            notifyClients({ message: 'error', log: `Contract function called, not saved for ${net}` })
+
+        } catch (err) {
+            notifyClients({ message: 'error', log: `Contract function called, not saved for ${net}`, error: err })
         }
         console.log(`${net} Transaction Hash from event: ${txHash}`);
     });
@@ -173,6 +173,7 @@ Object.entries(configs).map(async ([net, config]) => {
             // Call the 'checkLatency' function in the contract
 
             if (net === "Polygon") {
+
 
                 const tx = await contract.checkLatency({
                     maxPriorityFeePerGas: ethers.utils.parseUnits('26', 'gwei'),
