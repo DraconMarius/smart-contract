@@ -136,70 +136,71 @@ sequelize.sync({ force: false })
                 console.log('Frontend disconnected');
             });
         });
+
+
+        Object.entries(configs).map(async ([net, config]) => {
+            console.log(`Setting up provider for ${net}`);
+
+            const alchemyProvider = new ethers.providers.JsonRpcProvider(config.rpc);
+
+            const wallet = new ethers.Wallet(process.env.SECRET_KEY, alchemyProvider);
+            // Create contract instance
+            const contract = new ethers.Contract(config.contract, contractABI, wallet);
+
+
+            let callT
+
+            // Listen for the ContractCalled event
+            contract.on("ContractCalled", async (caller, timestamp, event) => {
+                const latency = calcAge(callT, timestamp.toNumber() * 1000)
+                const txHash = event.transactionHash;
+                // console.log(txHash, event.transactionHash)
+                try {
+
+                    await saveToDb(net, txHash, callT, new Date(timestamp.toNumber() * 1000), latency, caller)
+                    notifyClients({ message: 'update', log: `Contract function called, transaction confirmed for ${net}` })
+
+                } catch (err) {
+                    notifyClients({ message: 'error', log: `Contract function called, not saved for ${net}`, error: err })
+                }
+                console.log(`${net} Transaction Hash from event: ${txHash}`);
+            });
+
+
+            cron.schedule('0,30 * * * *', async () => {
+                console.log('Calling contract function every 30 minutes');
+                callT = Date.now();
+                try {
+                    // Call the 'checkLatency' function in the contract
+
+                    if (net === "Polygon") {
+
+
+                        const tx = await contract.checkLatency({
+                            maxPriorityFeePerGas: ethers.utils.parseUnits('26', 'gwei'),
+                            maxFeePerGas: ethers.utils.parseUnits('26', 'gwei'),
+                            gasLimit: "300000"
+                        });
+
+                        // Wait for the transaction to be mined
+                        const receipt = await tx.wait();
+                        console.log(`Transaction mined ${net}:`, receipt.transactionHash);
+                    } else {
+                        const tx = await contract.checkLatency({
+                            gasLimit: "300000"
+                        });
+
+                        // Wait for the transaction to be mined
+                        const receipt = await tx.wait();
+                        console.log(`Transaction mined ${net}:`, receipt.transactionHash);
+                    }
+
+                    // notifyClients({ message: 'Contract function called, transaction confirmed.' });
+
+                } catch (err) {
+                    console.error('Error calling contract function:', err);
+                }
+
+            });
+        });
     });
-
-Object.entries(configs).map(async ([net, config]) => {
-    console.log(`Setting up provider for ${net}`);
-
-    const alchemyProvider = new ethers.providers.JsonRpcProvider(config.rpc);
-
-    const wallet = new ethers.Wallet(process.env.SECRET_KEY, alchemyProvider);
-    // Create contract instance
-    const contract = new ethers.Contract(config.contract, contractABI, wallet);
-
-
-    let callT
-
-    // Listen for the ContractCalled event
-    contract.on("ContractCalled", async (caller, timestamp, event) => {
-        const latency = calcAge(callT, timestamp.toNumber() * 1000)
-        const txHash = event.transactionHash;
-        // console.log(txHash, event.transactionHash)
-        try {
-
-            await saveToDb(net, txHash, callT, new Date(timestamp.toNumber() * 1000), latency, caller)
-            notifyClients({ message: 'update', log: `Contract function called, transaction confirmed for ${net}` })
-
-        } catch (err) {
-            notifyClients({ message: 'error', log: `Contract function called, not saved for ${net}`, error: err })
-        }
-        console.log(`${net} Transaction Hash from event: ${txHash}`);
-    });
-
-    cron.schedule('0,30 * * * *', async () => {
-        console.log('Calling contract function every 30 minutes');
-        callT = Date.now();
-        try {
-            // Call the 'checkLatency' function in the contract
-
-            if (net === "Polygon") {
-
-
-                const tx = await contract.checkLatency({
-                    maxPriorityFeePerGas: ethers.utils.parseUnits('26', 'gwei'),
-                    maxFeePerGas: ethers.utils.parseUnits('26', 'gwei'),
-                    gasLimit: "300000"
-                });
-
-                // Wait for the transaction to be mined
-                const receipt = await tx.wait();
-                console.log(`Transaction mined ${net}:`, receipt.transactionHash);
-            } else {
-                const tx = await contract.checkLatency({
-                    gasLimit: "300000"
-                });
-
-                // Wait for the transaction to be mined
-                const receipt = await tx.wait();
-                console.log(`Transaction mined ${net}:`, receipt.transactionHash);
-            }
-
-            // notifyClients({ message: 'Contract function called, transaction confirmed.' });
-
-        } catch (err) {
-            console.error('Error calling contract function:', err);
-        }
-
-    });
-});
-
