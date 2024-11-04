@@ -58,7 +58,7 @@ function Disp() {
         };
 
         wsRef.current.onerror = (error) => {
-            // console.error('WebSocket error:', error);
+            console.error('WebSocket error:', error);
             wsRef.current.close();
         };
     };
