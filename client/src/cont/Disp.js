@@ -30,6 +30,7 @@ function Disp() {
 
     const connectWebSocket = (retryDelay = 1000) => {
         wsRef.current = new WebSocket(wsUri);
+        console.log(`wsUri: ${wsUri}`)
 
         wsRef.current.onopen = () => {
             console.log('Connected to WebSocket server');
@@ -57,7 +58,7 @@ function Disp() {
         };
 
         wsRef.current.onerror = (error) => {
-            console.error('WebSocket error:', error);
+            // console.error('WebSocket error:', error);
             wsRef.current.close();
         };
     };
