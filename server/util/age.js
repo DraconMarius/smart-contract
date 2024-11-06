@@ -2,9 +2,8 @@ function calcAge(startT, endT) {
     const start = new Date(startT);
     const end = new Date(endT);
 
-    const diffMs = end - start; // milliseconds between now & transaction date
-
-    return `${diffMs} milliseconds`;
+    const diffMs = end - start; // milliseconds between event emitted block & initial call time
+    return `${Math.max(diffMs, 0)} milliseconds`;
 
 }
 

@@ -166,13 +166,14 @@ sequelize.sync({ force: false })
                 const latency = calcAge(callT, timestamp.toNumber() * 1000)
                 const txHash = event.transactionHash;
                 // console.log(txHash, event.transactionHash)
+                notifyClients({ message: 'event listened', log: `Contract called, saving event for ${net}` })
                 try {
 
                     await saveToDb(net, txHash, callT, new Date(timestamp.toNumber() * 1000), latency, caller)
-                    notifyClients({ message: 'update', log: `Contract function called, transaction confirmed for ${net}` })
+                    notifyClients({ message: 'update', log: `Transaction saved for ${net}` })
 
                 } catch (err) {
-                    notifyClients({ message: 'error', log: `Contract function called, not saved for ${net}`, error: err })
+                    notifyClients({ message: 'error', log: `Error: not saved for ${net}`, error: err })
                 }
                 console.log(`${net} Transaction Hash from event: ${txHash}`);
             });
@@ -198,7 +199,7 @@ sequelize.sync({ force: false })
                         console.log(`Transaction mined ${net}:`, receipt.transactionHash);
                     } else {
                         const tx = await contract.checkLatency({
-                            gasLimit: "300000"
+                            gasLimit: "350000"
                         });
 
                         // Wait for the transaction to be mined
