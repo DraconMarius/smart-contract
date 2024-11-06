@@ -16,4 +16,11 @@ const scanUrl = {
     Base: "https://sepolia.basescan.org/"
 }
 
-export default scanUrl
+const contractAdd = {
+    Eth: `0xB3A2bF2c143970c10618ED8E4007b68D55e63eb0`,
+    Polygon: `0xB13a80d106f97669D53E64004DC4507c8D2C02BD`,
+    Arbitrum: `0xD830Bf02536F8F7c22E359A6d775219F52374FE9`,
+    Base: `0xfE45f33b94953D779De8CB97D87f4e700f7684aC`
+}
+
+export { scanUrl, contractAdd };

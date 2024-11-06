@@ -164,7 +164,7 @@ function Disp() {
                                         <a href="https://docs.alchemy.com" target="_blank" rel="noreferrer">Alchemy Docs</a>
                                     </li>
                                     <li>
-                                        <a href="https://github.com/DraconMarius/testnet-status" target="_blank" rel="noreferrer">Github</a>
+                                        <a href="https://github.com/DraconMarius/smart-contract" target="_blank" rel="noreferrer">Github</a>
                                     </li>
                                     <li>
                                         <a href="https://www.linkedin.com/in/mari-ma-70771585" target="_blank" rel="noreferrer">Contact</a>

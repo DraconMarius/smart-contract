@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, useScroll, AnimatePresence } from 'framer-motion';
-import scanUrl from '../util/scan';
+import { scanUrl } from '../util/scan';
 
 import ethereumIcon from '../assets/etherscan-logo.png'
 import arbitrumIcon from '../assets/arbitrum-logo.png'
 import optimismIcon from '../assets/optimism-logo.png'
 import polygonIcon from '../assets/polygon-logo.png'
+
+import Statistic from './Statistic';
 
 function StatusBar({ res, selectedNetwork, min, max, avg }) {
     const [focusedIndex, setFocusedIndex] = useState(null);
@@ -72,8 +74,15 @@ function StatusBar({ res, selectedNetwork, min, max, avg }) {
     return (
         <AnimatePresence key={selectedNetwork}>
 
+            <Statistic
+                selectedNetwork={selectedNetwork}
+                icon={icon}
+                min={min}
+                max={max}
+                avg={avg} />
             <motion.div
                 layout className="status-container" ref={containerRef} style={{ position: 'relative' }} key={selectedNetwork}>
+
                 {entries.map((entry, index) => {
                     const currentEntryDate = new Date(entry.timestamp).toISOString().slice(0, 10);
                     const previousEntryDate = index > 0 ? new Date(entries[index - 1].timestamp).toISOString().slice(0, 10) : null;
@@ -163,9 +172,7 @@ function StatusBar({ res, selectedNetwork, min, max, avg }) {
                     );
                 })}
             </motion.div>
-            <div className="container">
-                <p className="title is-6 has-text-left is-align-items-flex-end">{selectedNetwork}</p>
-            </div>
+
         </AnimatePresence >
     );
 }
