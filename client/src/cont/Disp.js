@@ -140,7 +140,7 @@ function Disp() {
                                 // console.log(`${avgLatency} ${minLatency} ${maxLatency} latencies for ${networkKey}`)
 
                                 return (
-                                    <div className="container is-justify-content-center" key={networkKey}>
+                                    <div className="container is-justify-content-center card transparent" key={networkKey}>
                                         <StatusBar
                                             res={db}
                                             selectedNetwork={networkKey}
@@ -149,6 +149,7 @@ function Disp() {
                                             max={maxLatency}
                                             avg={avgLatency}
                                         />
+                                        <div className="card-footer"></div>
                                     </div>
                                 )
                             })}

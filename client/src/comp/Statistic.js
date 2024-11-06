@@ -8,8 +8,13 @@ function Statistic({ selectedNetwork, icon, min, max, avg }) {
 
 
     return (
-        <div className="level mb-0 card transparent">
-            <div className="level-item">
+        <div className="level mb-0">
+            <div className="level-item has-text-centered">
+                <a href={`${scanUrl[selectedNetwork]}address/${contractAdd[selectedNetwork]}`} className="is-align-items-center is-justify-content-center" target="_blank" rel="noreferrer">
+                    <span className="icon is-align-self-center m-1"  >
+                        <img src={icon} />
+                    </span>
+                </a>
                 <p className="title is-5 has-text-left is-align-items-center">{selectedNetwork}</p>
             </div>
             <div class="level-item has-text-centered">
@@ -30,16 +35,7 @@ function Statistic({ selectedNetwork, icon, min, max, avg }) {
                     <p class="title is-5">{`${max}ms`}</p>
                 </div>
             </div>
-            <div class="level-item has-text-centered">
-                <div>
-                    <p class="heading">SCAN.IO</p>
-                    <a href={`${scanUrl[selectedNetwork]}address/${contractAdd[selectedNetwork]}`} target="_blank" rel="noreferrer">
-                        <span className="icon is-small is-align-self-center"  >
-                            <img src={icon} />
-                        </span>
-                    </a>
-                </div>
-            </div>
+
         </div>
     );
 }

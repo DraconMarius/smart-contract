@@ -72,7 +72,7 @@ function StatusBar({ res, selectedNetwork, min, max, avg }) {
 
 
     return (
-        <AnimatePresence key={selectedNetwork}>
+        <AnimatePresence key={selectedNetwork} >
 
             <Statistic
                 selectedNetwork={selectedNetwork}
@@ -123,14 +123,14 @@ function StatusBar({ res, selectedNetwork, min, max, avg }) {
                                     layout
                                     className="status-info "
                                     initial={{ opacity: 0, x: 300, y: -250 }}
-                                    animate={{ opacity: 1, x: 50, y: -50 }}
+                                    animate={{ opacity: 1, x: 25, y: -75 }}
                                     exit={{ opacity: 0, y: -200 }}
                                     transition={{ duration: 0.5 }}
                                     style={{
                                         position: 'absolute',
                                         transformOrigin: 'center',
                                         left: `calc(50% + ${scrollXProgress}%)`,
-                                        // // transform: 'translateX(-50%)',
+                                        transform: 'translateX(-50%)',
                                         zIndex: 3,
                                     }}
                                 >
