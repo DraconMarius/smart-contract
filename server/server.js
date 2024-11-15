@@ -15,6 +15,8 @@ const PORT = process.env.PORT || 3001;
 // const { Alchemy, Network, Wallet } = require('alchemy-sdk');
 const Net = require("./db/models/net");
 const Entry = require("./db/models/entry");
+const Error = require("./db/models/error");
+
 const Key = process.env.ALCHEMY_API_KEY;
 
 
@@ -22,15 +24,15 @@ const Key = process.env.ALCHEMY_API_KEY;
 const configs = {
     Eth: {
         rpc: `https://eth-sepolia.g.alchemy.com/v2/${Key}`,
-        contract: `0xB3A2bF2c143970c10618ED8E4007b68D55e63eb0`
+        contract: `0xE61DD73008A3c66fBF9A9f7c5785f2B68139475d`
     },
     Polygon: {
         rpc: `https://polygon-amoy.g.alchemy.com/v2/${Key}`,
-        contract: `0xB13a80d106f97669D53E64004DC4507c8D2C02BD`
+        contract: `0xB134BB71d6DE99dB9C18F87f61bD7313b20670F6`
     },
     Arbitrum: {
         rpc: `https://arb-sepolia.g.alchemy.com/v2/${Key}`,
-        contract: `0xD830Bf02536F8F7c22E359A6d775219F52374FE9`
+        contract: `0xa51c0FB50104Ac305Ed394974eb9bfAD0f9F66e7`
     },
     // Optimism: {
     //     apiKey: `https://opt-sepolia.g.alchemy.com/v2/${Key}`,
@@ -38,15 +40,18 @@ const configs = {
     // },
     Base: {
         rpc: `https://base-sepolia.g.alchemy.com/v2/${Key}`,
-        contract: `0xfE45f33b94953D779De8CB97D87f4e700f7684aC`
+        contract: `0xfda7803d2c773d755F96CB14685aCcB34b85ed87`
     }
 };
 
 // ABI of the smart contract
 const contractABI = [
     "function checkLatency() public",
-    "event ContractCalled(address indexed caller, uint256 timestamp)"
+    "function readLatency() public view returns (uint256)",
+    "event ContractCalled(address indexed caller, uint256 timestamp)",
+    "event ContractRead(address indexed reader, uint256 timestamp)"
 ];
+
 
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/build')));
@@ -102,7 +107,7 @@ const getID = async (net) => {
     }
 };
 
-const saveToDb = async (net, txHash, startT, endT, latency, caller) => {
+const saveToDb = async (net, txHash, startT, endT, writeLatency, readLatency, caller) => {
     const idData = await getID(net);
 
     const newEntry = await Entry.create({
@@ -110,19 +115,20 @@ const saveToDb = async (net, txHash, startT, endT, latency, caller) => {
         tx_hash: txHash,
         start_time: startT,
         end_time: endT,
-        latency,
+        write_latency: writeLatency,
+        read_latency: readLatency,
         caller,
         timestamp: getTime()
-    })
-
+    });
     return newEntry;
-}
+};
 
 let wss
 
 sequelize.sync({ force: false })
     .then(() => Net.sync())
     .then(() => Entry.sync())
+    .then(() => Error.sync())
     .then(() => {
         const server = app.listen(PORT, () => {
             console.log(`Server is listening on port ${PORT}`);
@@ -163,20 +169,25 @@ sequelize.sync({ force: false })
 
             // Listen for the ContractCalled event
             contract.on("ContractCalled", async (caller, timestamp, event) => {
-                const latency = calcAge(callT, timestamp.toNumber() * 1000)
+                const writeLatency = calcAge(callT, timestamp.toNumber() * 1000);
                 const txHash = event.transactionHash;
-                // console.log(txHash, event.transactionHash)
-                notifyClients({ message: 'event listened', log: `Contract called, saving event for ${net}` })
-                try {
 
-                    await saveToDb(net, txHash, callT, new Date(timestamp.toNumber() * 1000), latency, caller)
-                    notifyClients({ message: 'update', log: `Transaction saved for ${net}` })
-
-                } catch (err) {
-                    notifyClients({ message: 'error', log: `Error: not saved for ${net}`, error: err })
-                }
+                notifyClients({ message: 'event listened', log: `Contract called, saving write latency for ${net}` });
                 console.log(`${net} Transaction Hash from event: ${txHash}`);
+
+                try {
+                    // Call readLatency and convert it to a string before saving
+                    const readLatencyBN = await contract.readLatency();
+                    const readLatency = `${readLatencyBN.toString()} milliseconds`;
+
+                    await saveToDb(net, txHash, callT, new Date(timestamp.toNumber() * 1000), writeLatency.toString(), readLatency, caller);
+                    notifyClients({ message: 'update', log: `Latencies saved for ${net}` });
+                } catch (err) {
+                    console.error(`Error calling readLatency for ${net}:`, err);
+                    notifyClients({ message: 'error', log: `Error: readLatency not retrieved for ${net}`, error: err });
+                }
             });
+
 
 
             cron.schedule('0,30 * * * *', async () => {

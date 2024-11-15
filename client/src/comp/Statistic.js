@@ -17,22 +17,22 @@ function Statistic({ selectedNetwork, icon, min, max, avg }) {
                 </a>
                 <p className="title is-5 has-text-left is-align-items-center">{selectedNetwork}</p>
             </div>
-            <div class="level-item has-text-centered">
+            <div className="level-item has-text-centered">
                 <div>
-                    <p class="heading">Avg</p>
-                    <p class="title is-5">{`${Math.round(avg)}ms`}</p>
+                    <p className="heading">Avg</p>
+                    <p className="title is-5">{`${Math.round(avg)}ms`}</p>
                 </div>
             </div>
-            <div class="level-item has-text-centered">
+            <div className="level-item has-text-centered">
                 <div>
-                    <p class="heading">Min</p>
-                    <p class="title is-5">{`${min}ms`}</p>
+                    <p className="heading">Min</p>
+                    <p className="title is-5">{`${min}ms`}</p>
                 </div>
             </div>
-            <div class="level-item has-text-centered">
+            <div className="level-item has-text-centered">
                 <div>
-                    <p class="heading">Max</p>
-                    <p class="title is-5">{`${max}ms`}</p>
+                    <p className="heading">Max</p>
+                    <p className="title is-5">{`${max}ms`}</p>
                 </div>
             </div>
 

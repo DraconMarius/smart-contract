@@ -34,10 +34,10 @@
   Once ompelted, we would require these addresses to call the contract from our server.
 
   For documentation purposes, here are the deployed contract address for the following testnets:
-  > Eth-sepolia: 0xB3A2bF2c143970c10618ED8E4007b68D55e63eb0
-  > Poly-amoy: 0xB13a80d106f97669D53E64004DC4507c8D2C02BD
-  > Arbitrum: 0xD830Bf02536F8F7c22E359A6d775219F52374FE9
-  > Base: 0xfE45f33b94953D779De8CB97D87f4e700f7684aC
+  > Eth-sepolia: 0xB3A2bF2c143970c10618ED8E4007b68D55e63eb0 / 0xE61DD73008A3c66fBF9A9f7c5785f2B68139475d
+  > Poly-amoy: 0xB13a80d106f97669D53E64004DC4507c8D2C02BD / 0xB134BB71d6DE99dB9C18F87f61bD7313b20670F6
+  > Arbitrum: 0xD830Bf02536F8F7c22E359A6d775219F52374FE9 / 0xa51c0FB50104Ac305Ed394974eb9bfAD0f9F66e7
+  > Base: 0xfE45f33b94953D779De8CB97D87f4e700f7684aC / 0xfda7803d2c773d755F96CB14685aCcB34b85ed87
 
   This simple smart contract is written in solidity and simply emit an event for our server to listen to.
 

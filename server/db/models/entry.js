@@ -29,9 +29,13 @@ Entry.init({
         type: DataTypes.DATE,
         allowNull: false,
     },
-    latency: {
+    write_latency: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
+    },
+    read_latency: {
+        type: DataTypes.STRING,
+        allowNull: true,
     },
     caller: {
         type: DataTypes.STRING,
