@@ -197,7 +197,7 @@ sequelize.sync({ force: false })
 
 
 
-            cron.schedule('*/2 * * * *', async () => {
+            cron.schedule('0,30 * * * *', async () => {
                 console.log('Calling contract function every 30 minutes');
                 callT = Date.now();
                 try {
