@@ -164,7 +164,6 @@ sequelize.sync({ force: false })
             // Create contract instance
             const contract = new ethers.Contract(config.contract, contractABI, wallet);
 
-
             let callT
 
             // Listen for the ContractCalled event
@@ -172,12 +171,22 @@ sequelize.sync({ force: false })
                 const writeLatency = calcAge(callT, timestamp.toNumber() * 1000);
                 const txHash = event.transactionHash;
 
-                notifyClients({ message: 'event listened', log: `Contract called, saving write latency for ${net}` });
+                notifyClients({ message: 'event listened', log: `Contract called ${net}` });
                 console.log(`${net} Transaction Hash from event: ${txHash}`);
 
                 try {
+                    const gasPrices = await provider.getFeeData();
+                    const maxPriorityFeePerGas = gasPrices.maxPriorityFeePerGas;
+                    const polygonPriority = Number.parseInt(Utils.formatUnits(maxPriorityFeePerGas, 'wei'), 10) + 23500000000
+                    const maxFeePerGas = gasPrices.maxFeePerGas;
+                    const polygonMax = Number.parseInt(Utils.formatUnits(maxFeePerGas, 'wei'), 10) + 23500000000
+
                     // Call readLatency and convert it to a string before saving
-                    const readLatencyBN = await contract.readLatency();
+                    const readLatencyBN = await contract.readLatency({
+                        maxPriorityFeePerGas: net === "Polygon" ? polygonPriority : maxPriorityFeePerGas,
+                        maxFeePerGas: net === "Polygon" ? polygonMax : maxFeePerGas,
+                        gasLimit: "350000"
+                    });
                     const readLatency = `${readLatencyBN.toString()} milliseconds`;
 
                     await saveToDb(net, txHash, callT, new Date(timestamp.toNumber() * 1000), writeLatency.toString(), readLatency, caller);
@@ -194,29 +203,23 @@ sequelize.sync({ force: false })
                 console.log('Calling contract function every 30 minutes');
                 callT = Date.now();
                 try {
-                    // Call the 'checkLatency' function in the contract
+                    // Call the 'checkLatency' function in the contract (now with variable gasPrices for better consistencies)
 
-                    if (net === "Polygon") {
+                    const gasPrices = await provider.getFeeData();
+                    const maxPriorityFeePerGas = gasPrices.maxPriorityFeePerGas;
+                    const polygonPriority = Number.parseInt(Utils.formatUnits(maxPriorityFeePerGas, 'wei'), 10) + 23500000000
+                    const maxFeePerGas = gasPrices.maxFeePerGas;
+                    const polygonMax = Number.parseInt(Utils.formatUnits(maxFeePerGas, 'wei'), 10) + 23500000000
 
+                    const tx = await contract.checkLatency({
+                        maxPriorityFeePerGas: net === "Polygon" ? polygonPriority : maxPriorityFeePerGas,
+                        maxFeePerGas: net === "Polygon" ? polygonMax : maxFeePerGas,
+                        gasLimit: "350000"
+                    });
 
-                        const tx = await contract.checkLatency({
-                            maxPriorityFeePerGas: ethers.utils.parseUnits('26', 'gwei'),
-                            maxFeePerGas: ethers.utils.parseUnits('26', 'gwei'),
-                            gasLimit: "300000"
-                        });
-
-                        // Wait for the transaction to be mined
-                        const receipt = await tx.wait();
-                        console.log(`Transaction mined ${net}:`, receipt.transactionHash);
-                    } else {
-                        const tx = await contract.checkLatency({
-                            gasLimit: "350000"
-                        });
-
-                        // Wait for the transaction to be mined
-                        const receipt = await tx.wait();
-                        console.log(`Transaction mined ${net}:`, receipt.transactionHash);
-                    }
+                    // Wait for the transaction to be mined
+                    const receipt = await tx.wait();
+                    console.log(`Transaction mined ${net}:`, receipt.transactionHash);
 
                     // notifyClients({ message: 'Contract function called, transaction confirmed.' });
 
