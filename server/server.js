@@ -24,15 +24,15 @@ const Key = process.env.ALCHEMY_API_KEY;
 const configs = {
     Eth: {
         rpc: `https://eth-sepolia.g.alchemy.com/v2/${Key}`,
-        contract: `0xE61DD73008A3c66fBF9A9f7c5785f2B68139475d`
+        contract: `0xA1284BF0e4326C2e1AA597EadDc9f081A76Dfa48`
     },
     Polygon: {
         rpc: `https://polygon-amoy.g.alchemy.com/v2/${Key}`,
-        contract: `0xB134BB71d6DE99dB9C18F87f61bD7313b20670F6`
+        contract: `0xf77CC6fc2df2Ea00deE9bf4cFf26DE673B299b03`
     },
     Arbitrum: {
         rpc: `https://arb-sepolia.g.alchemy.com/v2/${Key}`,
-        contract: `0xa51c0FB50104Ac305Ed394974eb9bfAD0f9F66e7`
+        contract: `0xB134BB71d6DE99dB9C18F87f61bD7313b20670F6`
     },
     // Optimism: {
     //     apiKey: `https://opt-sepolia.g.alchemy.com/v2/${Key}`,
@@ -40,7 +40,7 @@ const configs = {
     // },
     Base: {
         rpc: `https://base-sepolia.g.alchemy.com/v2/${Key}`,
-        contract: `0xfda7803d2c773d755F96CB14685aCcB34b85ed87`
+        contract: `0x1B0FD62516d4C71E722E2e695D14cc024bD9F3b3`
     }
 };
 
@@ -158,9 +158,9 @@ sequelize.sync({ force: false })
         Object.entries(configs).map(async ([net, config]) => {
             console.log(`Setting up provider for ${net}`);
 
-            const alchemyProvider = new ethers.providers.JsonRpcProvider(config.rpc);
+            const provider = new ethers.providers.JsonRpcProvider(config.rpc);
 
-            const wallet = new ethers.Wallet(process.env.SECRET_KEY, alchemyProvider);
+            const wallet = new ethers.Wallet(process.env.SECRET_KEY, provider);
             // Create contract instance
             const contract = new ethers.Contract(config.contract, contractABI, wallet);
 
@@ -175,21 +175,19 @@ sequelize.sync({ force: false })
                 console.log(`${net} Transaction Hash from event: ${txHash}`);
 
                 try {
-                    const gasPrices = await provider.getFeeData();
-                    const maxPriorityFeePerGas = gasPrices.maxPriorityFeePerGas;
-                    const polygonPriority = Number.parseInt(Utils.formatUnits(maxPriorityFeePerGas, 'wei'), 10) + 23500000000
-                    const maxFeePerGas = gasPrices.maxFeePerGas;
-                    const polygonMax = Number.parseInt(Utils.formatUnits(maxFeePerGas, 'wei'), 10) + 23500000000
 
                     // Call readLatency and convert it to a string before saving
-                    const readLatencyBN = await contract.readLatency({
-                        maxPriorityFeePerGas: net === "Polygon" ? polygonPriority : maxPriorityFeePerGas,
-                        maxFeePerGas: net === "Polygon" ? polygonMax : maxFeePerGas,
-                        gasLimit: "350000"
-                    });
-                    const readLatency = `${readLatencyBN.toString()} milliseconds`;
+                    const readLatencyBN = await contract.readLatency();
+                    const readLatency = `${(readLatencyBN * 1000).toString()} milliseconds`;
 
-                    await saveToDb(net, txHash, callT, new Date(timestamp.toNumber() * 1000), writeLatency.toString(), readLatency, caller);
+                    const latestBlock = await provider.getBlock("latest");
+                    const blockTimestamp = latestBlock.timestamp * 1000;
+
+                    const calculatedLatency = (Date.now() - (timestamp.toNumber() * 1000))
+
+                    notifyClients({ message: 'check', log: `Read Latency on server: ${calculatedLatency} milliseconds | Contract Read Latency: ${readLatency}` })
+
+                    await saveToDb(net, txHash, callT, new Date(blockTimestamp), writeLatency.toString(), readLatency, caller);
                     notifyClients({ message: 'update', log: `Latencies saved for ${net}` });
                 } catch (err) {
                     console.error(`Error calling readLatency for ${net}:`, err);
@@ -199,7 +197,7 @@ sequelize.sync({ force: false })
 
 
 
-            cron.schedule('0,30 * * * *', async () => {
+            cron.schedule('*/2 * * * *', async () => {
                 console.log('Calling contract function every 30 minutes');
                 callT = Date.now();
                 try {
@@ -207,9 +205,9 @@ sequelize.sync({ force: false })
 
                     const gasPrices = await provider.getFeeData();
                     const maxPriorityFeePerGas = gasPrices.maxPriorityFeePerGas;
-                    const polygonPriority = Number.parseInt(Utils.formatUnits(maxPriorityFeePerGas, 'wei'), 10) + 23500000000
+                    const polygonPriority = Number.parseInt(ethers.utils.formatUnits(maxPriorityFeePerGas, 'wei'), 10) + 23500000000
                     const maxFeePerGas = gasPrices.maxFeePerGas;
-                    const polygonMax = Number.parseInt(Utils.formatUnits(maxFeePerGas, 'wei'), 10) + 23500000000
+                    const polygonMax = Number.parseInt(ethers.utils.formatUnits(maxFeePerGas, 'wei'), 10) + 23500000000
 
                     const tx = await contract.checkLatency({
                         maxPriorityFeePerGas: net === "Polygon" ? polygonPriority : maxPriorityFeePerGas,
