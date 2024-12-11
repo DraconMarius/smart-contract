@@ -18,9 +18,6 @@ const Entry = require("./db/models/entry");
 const Error = require("./db/models/error");
 
 const Key = process.env.ALCHEMY_API_KEY;
-
-
-
 const configs = {
     Eth: {
         rpc: `https://eth-sepolia.g.alchemy.com/v2/${Key}`,
