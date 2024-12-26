@@ -69,6 +69,14 @@
 
   > to concurrently start server and client react code w/ hotreload: `npm run develop`
 
+  ***This deployed project currently uses a wallet address's secret key set in the .env. (this will be the address where the testnet tokens are from) If hosting a standalone instance, please ensure both Alchemy API key, secret keys, and other variables are availble in .env***
+
+  > **If you would like to host a heroku version of it privately**, make sure you have heroku CLI installed, and at the root of the project run `heroku create app_name`. After we confirmed that it has been deployed. Navigate to your heroku project page and ensure that all of your env var is set.
+  >
+  > ![envvar](/client/src/assets/envvar.png)
+  >
+  > *Some of those variable (such as DB_NAME, USER, PASSWORD, JAWSDB_URL) would be accessible after you connect jawsDB as an add on (free tier).*
+
   ***
   ## Usage
 
