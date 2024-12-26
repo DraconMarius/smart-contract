@@ -9,7 +9,7 @@
  [Deployed Heroku Link](https://smart-contract-latency-2881eb8bf0c3.herokuapp.com/)
   
   ## Description
-  **This project features fullstack app meant to measure the latency for calling a simple contract that emit an event which will be listened by our server. Then using the emited time to calculate our latencies writing to the network, vs reading from the contract. Then the data is displayed in react with dynamic heights and color.
+  **This project features fullstack app meant to measure the latency for calling a simple contract that emit an event which will be listened by our server. Then using the emited time to calculate our latencies writing to the network as well as reading from the contract. The data is then stored in JawsDB and displayed in react with dynamic heights and color.**
 
   ***
 
@@ -71,6 +71,9 @@
 
   ***
   ## Usage
+
+  React features
+
   > **Write and Read latencies on seperate tabs**
   >
   > ![gif0](/client/src/assets/tab.gif)
@@ -92,14 +95,32 @@
   > ![snip0](/client/src/assets/ABI.png)
 
   > **Listener set up**
+  > 
+  > For each network, we set up our lisener using `contract.on` after
   >
   > ![snip2](/client/src/assets/setup.png)
   > ![snip3](/client/src/assets/listener.png)
+  >
+  > we then set up a cron schedule to call our contract every 30 minutes
+  >
+  > ![snip4](/client/src/assets/cron.png)
 
-  > **Variable gasPrice, ensure Polygon transaction can goes through**
+  > **Variable gasPrice, ensuring Polygon transaction can goes through**
   > 
-  >![snip4](client/src/assets/error.png)
-  >![snip5](/client/src/assets/varPrice.png)
+  > ![snip5](/client/src/assets/error.png)
+  > ![snip6](/client/src/assets/varPrice.png)
+
+  > **Read Latencies after event**
+  >
+  > once the `checkLatnecy` function has been called, the current block time that the call was mined will be saved by our contract for our read latencies
+  >
+  > ![snip7](/client/src/assets/write.png)
+  >
+  > and once we received the called event on our server end, it will initiate a second call for the `readLatency` function that retreive the calculated latencies between the original write block as our `startTime` for our read latencies, and calculate the difference between the stored time vs the current block time.
+  >
+  > ![snip7](/client/src/assets/read.png)
+
+
 
   ***
   ## License
